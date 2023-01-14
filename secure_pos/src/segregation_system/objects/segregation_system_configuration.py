@@ -8,6 +8,9 @@ CONFIGURATION_SCHEMA_PATH = './json_schema/segregation_configuration_schema.json
 
 
 class SegregationSystemConfiguration:
+    """
+    Object needed to store contained inside the config file
+    """
     def __init__(self):
         # Open configuration file
         with open(CONFIGURATION_PATH, "r", encoding="UTF-8") as file:

@@ -20,13 +20,13 @@ BALANCING_REPORT_PATH = "./graphs/Balancing_plot.png"
 QUALITY_REPORT_PATH = "./graphs/radar_diagram.png"
 
 TESTING_PHASE = True
-SERVER_STARTED = False
 
 
 class SegregationSystemController:
     """
     Class that manage all the logic inside the Segregation System
     """
+    current_iteration = 0
 
     def __init__(self):
         self.config_file = SegregationSystemConfiguration()
@@ -42,15 +42,17 @@ class SegregationSystemController:
         :return: Null
         """
 
-        data_extractor = DataExtractor(self.db_handler)
+        data_extractor = DataExtractor(self.db_handler,
+                                       self.current_iteration,
+                                       self.config_file.session_nr_threshold)
         labels = data_extractor.count_labels()
 
         plotter = PlotterHistogram(labels)
         plotter.plot_data_balancing()
-        
+
         if not TESTING_PHASE:
             sys.exit(0)
-        
+
         # The system now needs to stop, we need to wait the Data Analyst evaluation
         random_number = random.randint(0, 9)
         # Set as 20% failure, 80% success
@@ -66,7 +68,6 @@ class SegregationSystemController:
                 data['response'] = 'Yes'
             with open('./responses/balancing_response.json', 'w', encoding='utf-8') as response:
                 json.dump(data, response)
-        return
 
     def check_quality(self):
         """
@@ -74,7 +75,9 @@ class SegregationSystemController:
         and plot them in order to evaluate the data quality
         """
 
-        data_extractor = DataExtractor(self.db_handler)
+        data_extractor = DataExtractor(self.db_handler,
+                                       self.current_iteration,
+                                       self.config_file.session_nr_threshold)
         data = data_extractor.extract_features()
 
         plotter = PlotterRadarDiagram(data)
@@ -82,7 +85,7 @@ class SegregationSystemController:
 
         if not TESTING_PHASE:
             sys.exit(0)
-        
+
         # The system now needs to stop, we need to wait the Data Analyst evaluation
         random_number = random.randint(0, 9)
         # Set as 20% failure, 80% success
@@ -98,8 +101,6 @@ class SegregationSystemController:
                 data['response'] = 'Yes'
             with open('./responses/quality_response.json', 'w', encoding='utf-8') as response:
                 json.dump(data, response)
-        return
-        
 
     def generate_datasets(self):
         """
@@ -107,7 +108,9 @@ class SegregationSystemController:
         and splits them in train, validation and test sets
         """
 
-        data_extractor = DataExtractor(self.db_handler)
+        data_extractor = DataExtractor(self.db_handler,
+                                       self.current_iteration,
+                                       self.config_file.session_nr_threshold)
         data_frame_input = data_extractor.extract_all()
 
         data_frame_result = data_extractor.extract_labels()
@@ -153,13 +156,14 @@ class SegregationSystemController:
 
         # New testing phase
         if TESTING_PHASE:
+            self.current_iteration += 1
             return
 
         sys.exit(0)
 
-    def check_response(self):
+    def run(self):
         """
-        Function that checks which phase we need to execute, three options are available:
+        Method that checks which phase we need to execute, three options are available:
         - First start:  The REST server is not started yet, so we need to start it waiting for
                         new incoming messages from Preparation system.
 
@@ -171,7 +175,6 @@ class SegregationSystemController:
                         continued its execution until the radar diagram has been generated, the
                         system suspended again waiting for the Data Analyst response
         """
-        global SERVER_STARTED
 
         extractor = ResponseExtractor()
 
@@ -216,7 +219,7 @@ class SegregationSystemController:
                         continue
                 else:
                     print('Unknown response: please write "yes" or "no" inside the file')
-            
+
             # Wait for a enough sessions to generate ML sets
             self.semaphore.acquire()
             self.check_balancing()

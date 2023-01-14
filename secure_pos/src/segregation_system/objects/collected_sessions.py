@@ -10,14 +10,15 @@ class CollectedSessions:
         self.prep_sessions = []
         self.sessions_count = 0
 
-        for i in range(len(data)):
+        for i in range( len(data) ):
             p_s = PreparedSession(data.values[i, :], labels.values[i])
             self.prep_sessions.append(p_s)
             self.sessions_count += 1
 
     def get_features(self):
         """
-        Extracts a list of features we are currently working on: [[...features...],[...features...],...]
+        Extracts a list of features we are currently working on:
+        [[...features...],[...features...],...]
         :return: list of the list of features
         """
         features = []
@@ -43,7 +44,8 @@ class CollectedSessions:
 
     def get_all(self):
         """
-        Extracts a list of features we are currently working on: [[...features...],[...features...],...]
+        Extracts a list of features we are currently working on:
+        [[...features...],[...features...],...]
         :return: list of the list of features
         """
         data = []

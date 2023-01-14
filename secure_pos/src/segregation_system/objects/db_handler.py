@@ -53,11 +53,13 @@ class DBHandler:
                 print(f"Exception during insert execution: {ex}\n")
             return ret
 
-    def extract_all_unallocated_data(self):
+    def extract_all_unallocated_data(self, iteration, sessions_per_training):
         """
         Method that perform a query for unused data extraction
         :return: Array of unused data
         """
+        start = sessions_per_training * iteration
+        end = sessions_per_training * (iteration + 1)
         # Paying attention to critical runs
         with self.semaphore:
             try:
@@ -66,11 +68,12 @@ class DBHandler:
                                                        'time_kurtosis, time_skewness, amount_mean,'
                                                        'amount_median, amount_std, amount_kurtosis,'
                                                        'amount_skewness, id FROM ArrivedSessions '
-                                                       'WHERE type = -1')
+                                                       f'WHERE counter BETWEEN {start} AND {end}')
                 # Extracts labels for current data
                 labels = self.db_connection.read_sql('SELECT label '
                                                      'FROM ArrivedSessions '
-                                                     'WHERE type = -1')
+                                                     f'WHERE type = -1'
+                                                     f'AND counter BETWEEN {start} AND {end}')
             except Exception as ex:
                 print(f"Exception during extraction execution: {ex}\n")
 
@@ -87,6 +90,3 @@ class DBHandler:
                                           "WHERE type = -1")
             except Exception as ex:
                 print(f"Exception during update execution: {ex}\n")
-
-
-

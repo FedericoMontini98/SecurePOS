@@ -57,6 +57,10 @@ class CommunicationController:
 
 
 def send_to_testing_system(scenario):
+    """
+    Testing function that sends the scenario and the timestamp to the testing system
+    :param scenario: integer representing the scenario
+    """
     print(f"Sending scenario: {scenario} to testing system")
     timestamp = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S.%f")
     # Create a dictionary with requested data
@@ -70,4 +74,4 @@ def send_to_testing_system(scenario):
         if not response.ok:
             logging.error("Failed to send raw dataset")
     except requests.exceptions.RequestException as ex:
-        logging.error(f"Unable to send scenario msg to testing system.\tException %{ex}\n")
+        logging.error(f"Unable to send scenario msg to testing system.\tException {ex}\n")
