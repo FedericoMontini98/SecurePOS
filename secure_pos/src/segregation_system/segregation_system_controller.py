@@ -8,12 +8,12 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 
-from segregation_system.objects.data_extractor import DataExtractor
-from segregation_system.objects.communication_controller import CommunicationController, send_to_testing_system
-from segregation_system.objects.db_handler import DBHandler
-from segregation_system.objects.segregation_system_configuration import SegregationSystemConfiguration
-from segregation_system.objects.response_extractor import ResponseExtractor
-from segregation_system.objects.plotters import PlotterHistogram, PlotterRadarDiagram
+from segregation_system.data_extractor import DataExtractor
+from segregation_system.communication_controller import CommunicationController, send_to_testing_system
+from segregation_system.db_handler import DBHandler
+from segregation_system.segregation_system_configuration import SegregationSystemConfiguration
+from segregation_system.response_extractor import ResponseExtractor
+from segregation_system.plotters import PlotterHistogram, PlotterRadarDiagram
 
 PATH_DB = "./database/segregationSystemDatabase.db"
 BALANCING_REPORT_PATH = "./graphs/Balancing_plot.png"
@@ -27,6 +27,7 @@ class SegregationSystemController:
     Class that manage all the logic inside the Segregation System
     """
     current_iteration = 0
+    server_started = False
 
     def __init__(self):
         self.config_file = SegregationSystemConfiguration()
@@ -178,15 +179,6 @@ class SegregationSystemController:
 
         extractor = ResponseExtractor()
 
-        # Start the Flask server on a daemon thread
-        communication_controller = \
-            CommunicationController(self.db_handler,
-                                    self.config_file.development_system_url,
-                                    self)
-        flask_thread = threading.Thread(target=communication_controller.init_rest_server,
-                                        daemon=True)
-        flask_thread.start()
-
         while True:
             # Check if data balance graph was analyzed by human expert
             result_balancing = extractor.extract_json_response_balancing()
@@ -219,6 +211,17 @@ class SegregationSystemController:
                         continue
                 else:
                     print('Unknown response: please write "yes" or "no" inside the file')
+
+            # Start the Flask server on a daemon thread
+            if not self.server_started:
+                communication_controller = \
+                    CommunicationController(self.db_handler,
+                                            self.config_file.development_system_url,
+                                            self)
+                flask_thread = threading.Thread(target=communication_controller.init_rest_server,
+                                                daemon=True)
+                flask_thread.start()
+                self.server_started = True
 
             # Wait for a enough sessions to generate ML sets
             self.semaphore.acquire()

@@ -1,6 +1,10 @@
+import os
+
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
+
+import utility
 
 
 class PlotterHistogram:
@@ -20,7 +24,7 @@ class PlotterHistogram:
         plt.xticks(range(len(x_labels)), x_labels, size='small')
 
         # Save the figure
-        plt.savefig("./graphs/Balancing_plot.png")
+        plt.savefig(os.path.join(utility.data_folder, "graphs/Balancing_plot.png"))
 
 
 class PlotterRadarDiagram:
@@ -51,4 +55,8 @@ class PlotterRadarDiagram:
         fig = px.scatter_polar(new_df, r='value', theta='type')
         fig.update_traces(fill='none')
 
-        fig.write_image("graphs/radar_diagram.png", format='png', engine='kaleido')
+        fig.write_image(
+            os.path.join(
+                utility.data_folder, "graphs/radar_diagram.png"),
+            format='png',
+            engine='kaleido')

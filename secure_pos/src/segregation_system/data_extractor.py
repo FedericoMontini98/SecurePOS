@@ -1,6 +1,6 @@
 import pandas as pd
 
-from segregation_system.objects.collected_sessions import CollectedSessions
+from segregation_system.collected_sessions import CollectedSessions
 
 
 class DataExtractor:

@@ -1,9 +1,11 @@
 import json
 import logging
+import os
 
+import utility
 from utility.json_validation import validate_json_data_file
 
-CONFIGURATION_PATH = 'segregation_configuration.json'
+CONFIGURATION_PATH = 'segregation_system/segregation_configuration.json'
 CONFIGURATION_SCHEMA_PATH = './json_schema/segregation_configuration_schema.json'
 
 
@@ -13,7 +15,7 @@ class SegregationSystemConfiguration:
     """
     def __init__(self):
         # Open configuration file
-        with open(CONFIGURATION_PATH, "r", encoding="UTF-8") as file:
+        with open(os.path.join(utility.data_folder, CONFIGURATION_PATH), "r", encoding="UTF-8") as file:
             # Load JSON configuration
             json_conf = json.load(file)
             # Validate configuration

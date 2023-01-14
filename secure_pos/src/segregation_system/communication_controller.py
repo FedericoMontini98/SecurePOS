@@ -23,8 +23,6 @@ class CommunicationController:
         """
         Method that create the server waiting for prepared sessions
         """
-        # DB dropping
-        self.db_handler.drop_db()
 
         server = RestServer()
         server.api.add_resource(ReceiveJsonApi,

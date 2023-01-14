@@ -1,5 +1,5 @@
 import pandas as pd
-from segregation_system.objects.prepared_session import PreparedSession
+from segregation_system.prepared_session import PreparedSession
 
 
 class CollectedSessions:
@@ -10,7 +10,7 @@ class CollectedSessions:
         self.prep_sessions = []
         self.sessions_count = 0
 
-        for i in range( len(data) ):
+        for i in range(len(data)):
             p_s = PreparedSession(data.values[i, :], labels.values[i])
             self.prep_sessions.append(p_s)
             self.sessions_count += 1

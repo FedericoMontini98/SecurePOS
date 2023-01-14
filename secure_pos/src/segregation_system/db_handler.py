@@ -1,5 +1,7 @@
+import os
 from threading import Semaphore
 
+import utility
 from database import DatabaseConnector
 
 
@@ -10,7 +12,7 @@ class DBHandler:
 
     def __init__(self, path_db):
         self.path_db = path_db
-        self.db_connection = DatabaseConnector(self.path_db)
+        self.db_connection = DatabaseConnector(os.path.join(utility.data_folder, self.path_db))
         self.semaphore = Semaphore(1)
 
     def create_arrived_session_table(self):
