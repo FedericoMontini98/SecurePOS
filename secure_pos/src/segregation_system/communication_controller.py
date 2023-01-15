@@ -13,11 +13,11 @@ class CommunicationController:
     Class that manage all the communication with other systems
     """
 
-    def __init__(self, db_handler, url, segregation_system_controller):
+    def __init__(self, db_handler, url, handler):
         self.filename = './database/PreparedSession.json'
         self.db_handler = db_handler
         self.dev_system_url = url
-        self.segregation_system_controller = segregation_system_controller
+        self.manage_message = handler
 
     def init_rest_server(self):
         """
@@ -37,7 +37,7 @@ class CommunicationController:
         Method that handle the incoming messages (preparation system)
         """
         logging.info("received new session")
-        thread = threading.Thread(target=self.segregation_system_controller.manage_message,
+        thread = threading.Thread(target=self.manage_message,
                                   args=[file_json])
         thread.start()
 

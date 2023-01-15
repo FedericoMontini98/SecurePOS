@@ -260,7 +260,7 @@ class SegregationSystemController:
                 communication_controller = \
                     CommunicationController(self.db_handler,
                                             self.config_file.development_system_url,
-                                            self)
+                                            self.manage_message)
                 flask_thread = threading.Thread(target=communication_controller.init_rest_server,
                                                 daemon=True)
                 flask_thread.start()
