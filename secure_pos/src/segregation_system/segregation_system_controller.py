@@ -8,6 +8,7 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 
+import utility
 from segregation_system.data_extractor import DataExtractor
 from segregation_system.communication_controller import CommunicationController, send_to_testing_system
 from segregation_system.db_handler import DBHandler
@@ -15,11 +16,13 @@ from segregation_system.segregation_system_configuration import SegregationSyste
 from segregation_system.response_extractor import ResponseExtractor
 from segregation_system.plotters import PlotterHistogram, PlotterRadarDiagram
 
-PATH_DB = "./database/segregationSystemDatabase.db"
-BALANCING_REPORT_PATH = "./graphs/Balancing_plot.png"
-QUALITY_REPORT_PATH = "./graphs/radar_diagram.png"
+PATH_DB = "segregation_system/database/segregationSystemDatabase.db"
+BALANCING_REPORT_PATH = "segregation_system/graphs/Balancing_plot.png"
+QUALITY_REPORT_PATH = "segregation_system/graphs/radar_diagram.png"
 
 TESTING_PHASE = True
+TESTING_DB_RESET = [5, 10, 15, 20, 25]
+TESTING_ITER = 0
 
 
 class SegregationSystemController:
@@ -42,6 +45,7 @@ class SegregationSystemController:
         and plot them in order to evaluate the data balancing
         :return: Null
         """
+        global TESTING_ITER
 
         data_extractor = DataExtractor(self.db_handler,
                                        self.current_iteration,
@@ -58,16 +62,33 @@ class SegregationSystemController:
         random_number = random.randint(0, 9)
         # Set as 20% failure, 80% success
         if random_number >= 8:
-            with open('./responses/balancing_response.json', 'r', encoding='utf-8') as opened_file:
+            self.current_iteration += 1
+            if self.current_iteration == TESTING_DB_RESET[TESTING_ITER]:
+                self.db_handler.drop_db()
+                TESTING_ITER += 1
+                self.current_iteration = 0
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/balancing_response.json'),
+                    'r',
+                    encoding='utf-8') as opened_file:
                 data = json.load(opened_file)
                 data['response'] = 'No'
-            with open('./responses/balancing_response.json', 'w', encoding='utf-8') as response:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/balancing_response.json'),
+                    'w',
+                    encoding='utf-8') as response:
                 json.dump(data, response)
         else:
-            with open('./responses/balancing_response.json', 'r', encoding='utf-8') as opened_file:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/balancing_response.json'),
+                    'r',
+                    encoding='utf-8') as opened_file:
                 data = json.load(opened_file)
                 data['response'] = 'Yes'
-            with open('./responses/balancing_response.json', 'w', encoding='utf-8') as response:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/balancing_response.json'),
+                    'w',
+                    encoding='utf-8') as response:
                 json.dump(data, response)
 
     def check_quality(self):
@@ -75,7 +96,7 @@ class SegregationSystemController:
         Method that calls the API that extracts the data
         and plot them in order to evaluate the data quality
         """
-
+        global TESTING_ITER
         data_extractor = DataExtractor(self.db_handler,
                                        self.current_iteration,
                                        self.config_file.session_nr_threshold)
@@ -91,16 +112,33 @@ class SegregationSystemController:
         random_number = random.randint(0, 9)
         # Set as 20% failure, 80% success
         if random_number >= 8:
-            with open('./responses/quality_response.json', 'r', encoding='utf-8') as opened_file:
+            self.current_iteration += 1
+            if self.current_iteration == TESTING_DB_RESET[TESTING_ITER]:
+                self.db_handler.drop_db()
+                TESTING_ITER += 1
+                self.current_iteration = 0
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/quality_response.json'),
+                    'r',
+                    encoding='utf-8') as opened_file:
                 data = json.load(opened_file)
                 data['response'] = 'No'
-            with open('./responses/quality_response.json', 'w', encoding='utf-8') as response:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/quality_response.json'),
+                    'w',
+                    encoding='utf-8') as response:
                 json.dump(data, response)
         else:
-            with open('./responses/quality_response.json', 'r', encoding='utf-8') as opened_file:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/quality_response.json'),
+                    'r',
+                    encoding='utf-8') as opened_file:
                 data = json.load(opened_file)
                 data['response'] = 'Yes'
-            with open('./responses/quality_response.json', 'w', encoding='utf-8') as response:
+            with open(os.path.join(
+                    utility.data_folder, 'segregation_system/responses/quality_response.json'),
+                    'w',
+                    encoding='utf-8') as response:
                 json.dump(data, response)
 
     def generate_datasets(self):
@@ -108,7 +146,7 @@ class SegregationSystemController:
         Method that manage the flow of the final phase, extracts data from the DB
         and splits them in train, validation and test sets
         """
-
+        global TESTING_ITER
         data_extractor = DataExtractor(self.db_handler,
                                        self.current_iteration,
                                        self.config_file.session_nr_threshold)
@@ -140,7 +178,7 @@ class SegregationSystemController:
         res = pd.concat([x_train, x_validation, x_test], ignore_index=True)
 
         # Update the type and mark the records as used
-        self.db_handler.update_type()
+        self.db_handler.update_type(self.current_iteration, self.config_file.session_nr_threshold)
 
         communication_controller = CommunicationController(self.db_handler,
                                                            self.config_file.development_system_url,
@@ -150,16 +188,21 @@ class SegregationSystemController:
 
         # remove the generated graphs
         try:
-            os.remove(BALANCING_REPORT_PATH)
-            os.remove(QUALITY_REPORT_PATH)
+            os.remove(os.path.join(
+                    utility.data_folder, BALANCING_REPORT_PATH))
+            os.remove(os.path.join(
+                    utility.data_folder, QUALITY_REPORT_PATH))
         except FileNotFoundError as ex:
             print(f"Error during file removal: {ex}")
 
         # New testing phase
         if TESTING_PHASE:
             self.current_iteration += 1
+            if self.current_iteration == TESTING_DB_RESET[TESTING_ITER]:
+                self.db_handler.drop_db()
+                TESTING_ITER += 1
+                self.current_iteration = 0
             return
-
         sys.exit(0)
 
     def run(self):
@@ -254,7 +297,8 @@ class SegregationSystemController:
                 print(f"Error during session insert #{self.sessions_nr + 1}")
                 return
             self.sessions_nr += 1
-            print(f"Arrived session #{self.sessions_nr}") # todo remove
+            if TESTING_PHASE:
+                print(f"Arrived session #{self.sessions_nr}")
             # Check if we have enough sessions
             if self.sessions_nr != self.config_file.session_nr_threshold:
                 return

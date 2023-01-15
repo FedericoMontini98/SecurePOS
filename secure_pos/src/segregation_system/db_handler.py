@@ -26,7 +26,7 @@ class DBHandler:
                 self.db_connection.create_table(
                     "CREATE TABLE IF NOT EXISTS ArrivedSessions "
                     "(counter INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    "id TEXT UNIQUE, "
+                    "id TEXT, "
                     "time_mean FLOAT, "
                     "time_median FLOAT, "
                     "time_std FLOAT, "
@@ -53,6 +53,7 @@ class DBHandler:
                 ret = self.db_connection.insert(data_frame, 'ArrivedSessions')
             except Exception as ex:
                 print(f"Exception during insert execution: {ex}\n")
+                return False
             return ret
 
     def extract_all_unallocated_data(self, iteration, sessions_per_training):
@@ -74,21 +75,27 @@ class DBHandler:
                 # Extracts labels for current data
                 labels = self.db_connection.read_sql('SELECT label '
                                                      'FROM ArrivedSessions '
-                                                     f'WHERE type = -1'
-                                                     f'AND counter BETWEEN {start} AND {end}')
+                                                     f'WHERE counter BETWEEN {start} AND {end}')
             except Exception as ex:
                 print(f"Exception during extraction execution: {ex}\n")
+                return []
 
         return [features, labels]
 
-    def update_type(self):
+    def update_type(self, iteration, sessions_per_iteration):
         """
         Update the type and mark the sessions as used on the DB
         """
+        start = sessions_per_iteration * iteration
+        end = sessions_per_iteration * (iteration + 1)
         with self.semaphore:
             try:
                 self.db_connection.update("UPDATE ArrivedSessions "
                                           "SET type = 0 "
-                                          "WHERE type = -1")
+                                          f"WHERE counter BETWEEN {start} AND {end}")
             except Exception as ex:
                 print(f"Exception during update execution: {ex}\n")
+
+    def drop_db(self):
+        with self.semaphore:
+            self.db_connection.drop_database()

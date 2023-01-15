@@ -24,7 +24,9 @@ class PlotterHistogram:
         plt.xticks(range(len(x_labels)), x_labels, size='small')
 
         # Save the figure
-        plt.savefig(os.path.join(utility.data_folder, "graphs/Balancing_plot.png"))
+        plt.savefig(os.path.join(utility.data_folder, "segregation_system/graphs/Balancing_plot.png"))
+
+        plt.clf()
 
 
 class PlotterRadarDiagram:
@@ -57,6 +59,6 @@ class PlotterRadarDiagram:
 
         fig.write_image(
             os.path.join(
-                utility.data_folder, "graphs/radar_diagram.png"),
+                utility.data_folder, "segregation_system/graphs/radar_diagram.png"),
             format='png',
             engine='kaleido')

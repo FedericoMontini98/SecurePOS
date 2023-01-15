@@ -68,7 +68,7 @@ def send_to_testing_system(scenario):
     }
     # Send data
     try:
-        response = requests.post('http://25.34.31.202:1234', json=dictionary)
+        response = requests.post('http://25.34.53.59:1234', json=dictionary)
         if not response.ok:
             logging.error("Failed to send raw dataset")
     except requests.exceptions.RequestException as ex:
